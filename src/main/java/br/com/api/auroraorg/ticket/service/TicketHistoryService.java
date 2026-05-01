@@ -7,6 +7,7 @@ import br.com.api.auroraorg.ticket.entity.TicketEvent;
 import br.com.api.auroraorg.ticket.enums.CommentVisibility;
 import br.com.api.auroraorg.ticket.enums.TicketEventOrigin;
 import br.com.api.auroraorg.ticket.enums.TicketEventType;
+import br.com.api.auroraorg.ticket.enums.SlaStatus;
 import br.com.api.auroraorg.ticket.enums.TicketPriority;
 import br.com.api.auroraorg.ticket.enums.TicketStatus;
 import br.com.api.auroraorg.ticket.repository.TicketEventRepository;
@@ -474,6 +475,322 @@ public class TicketHistoryService {
                 .description("O SLA do chamado foi violado")
                 .metadata(Map.of(
                         "slaDueAt", ticket.getSlaDueAt().toString()
+                ))
+                .visibility(CommentVisibility.INTERNO)
+                .build();
+
+        return eventRepository.save(event);
+    }
+
+    // ========== NOVOS EVENTOS DE SLA (MÓDULO 6) ==========
+
+    /**
+     * Registra evento de primeira resposta registrada.
+     */
+    @Transactional
+    public TicketEvent recordSlaPrimeiraRespostaRegistrada(Ticket ticket, User agente) {
+        log.debug("Registrando evento de primeira resposta: {}", ticket.getId());
+
+        String statusLabel = ticket.getSlaPrimeiraRespostaStatus() == SlaStatus.CUMPRIDO
+                ? "dentro do prazo"
+                : (ticket.getSlaPrimeiraRespostaStatus() == SlaStatus.VIOLADO ? "fora do prazo" : "");
+
+        TicketEvent event = TicketEvent.builder()
+                .ticket(ticket)
+                .eventType(TicketEventType.SLA_PRIMEIRA_RESPOSTA_REGISTRADA)
+                .actor(agente)
+                .origin(TicketEventOrigin.USUARIO)
+                .title(agente.getName() + " respondeu ao chamado " + statusLabel)
+                .description("Primeira resposta registrada pelo agente")
+                .metadata(Map.of(
+                        "agenteId", agente.getId(),
+                        "agenteName", agente.getName(),
+                        "tempoSegundos", ticket.getTempoPrimeiraRespostaSegundos(),
+                        "prazoPrimeiraResposta", ticket.getPrazoPrimeiraResposta().toString(),
+                        "statusSla", ticket.getSlaPrimeiraRespostaStatus().name()
+                ))
+                .visibility(CommentVisibility.INTERNO)
+                .build();
+
+        return eventRepository.save(event);
+    }
+
+    /**
+     * Registra evento de SLA de primeira resposta cumprido.
+     */
+    @Transactional
+    public TicketEvent recordSlaPrimeiraRespostaCumprida(Ticket ticket) {
+        log.debug("Registrando evento de primeira resposta cumprida: {}", ticket.getId());
+
+        TicketEvent event = TicketEvent.builder()
+                .ticket(ticket)
+                .eventType(TicketEventType.SLA_PRIMEIRA_RESPOSTA_CUMPRIDA)
+                .origin(TicketEventOrigin.SISTEMA)
+                .title("Sistema marcou SLA de primeira resposta como cumprido")
+                .description("A primeira resposta foi realizada dentro do prazo de " +
+                        java.time.Duration.between(ticket.getCreatedAt(), ticket.getPrazoPrimeiraResposta()).toHours() + " horas")
+                .metadata(Map.of(
+                        "tempoSegundos", ticket.getTempoPrimeiraRespostaSegundos(),
+                        "prazoPrimeiraResposta", ticket.getPrazoPrimeiraResposta().toString()
+                ))
+                .visibility(CommentVisibility.INTERNO)
+                .build();
+
+        return eventRepository.save(event);
+    }
+
+    /**
+     * Registra evento de SLA de primeira resposta violada.
+     */
+    @Transactional
+    public TicketEvent recordSlaPrimeiraRespostaViolada(Ticket ticket) {
+        log.warn("Registrando evento de primeira resposta violada: {}", ticket.getId());
+
+        TicketEvent event = TicketEvent.builder()
+                .ticket(ticket)
+                .eventType(TicketEventType.SLA_PRIMEIRA_RESPOSTA_VIOLADA)
+                .origin(TicketEventOrigin.SISTEMA)
+                .title("Sistema marcou SLA de primeira resposta como violado")
+                .description("A primeira resposta foi realizada fora do prazo")
+                .metadata(Map.of(
+                        "tempoSegundos", ticket.getTempoPrimeiraRespostaSegundos(),
+                        "prazoPrimeiraResposta", ticket.getPrazoPrimeiraResposta().toString()
+                ))
+                .visibility(CommentVisibility.INTERNO)
+                .build();
+
+        return eventRepository.save(event);
+    }
+
+    /**
+     * Registra evento de SLA de resolução cumprida.
+     */
+    @Transactional
+    public TicketEvent recordSlaResolucaoCumprida(Ticket ticket) {
+        log.debug("Registrando evento de resolução cumprida: {}", ticket.getId());
+
+        TicketEvent event = TicketEvent.builder()
+                .ticket(ticket)
+                .eventType(TicketEventType.SLA_RESOLUCAO_CUMPRIDA)
+                .origin(TicketEventOrigin.SISTEMA)
+                .title("Sistema marcou SLA de resolução como cumprido")
+                .description("Chamado resolvido dentro do prazo de " +
+                        java.time.Duration.between(ticket.getCreatedAt(), ticket.getPrazoResolucao()).toHours() + " horas")
+                .metadata(Map.of(
+                        "tempoSegundos", ticket.getTempoResolucaoSegundos(),
+                        "prazoResolucao", ticket.getPrazoResolucao().toString(),
+                        "dataResolucao", ticket.getDataResolucao().toString()
+                ))
+                .visibility(CommentVisibility.INTERNO)
+                .build();
+
+        return eventRepository.save(event);
+    }
+
+    /**
+     * Registra evento de SLA de resolução violada.
+     */
+    @Transactional
+    public TicketEvent recordSlaResolucaoViolada(Ticket ticket) {
+        log.warn("Registrando evento de resolução violada: {}", ticket.getId());
+
+        TicketEvent event = TicketEvent.builder()
+                .ticket(ticket)
+                .eventType(TicketEventType.SLA_RESOLUCAO_VIOLADA)
+                .origin(TicketEventOrigin.SISTEMA)
+                .title("Sistema marcou SLA de resolução como violado")
+                .description("Chamado resolvido fora do prazo")
+                .metadata(Map.of(
+                        "tempoSegundos", ticket.getTempoResolucaoSegundos(),
+                        "prazoResolucao", ticket.getPrazoResolucao().toString(),
+                        "dataResolucao", ticket.getDataResolucao().toString()
+                ))
+                .visibility(CommentVisibility.INTERNO)
+                .build();
+
+        return eventRepository.save(event);
+    }
+
+    /**
+     * Registra evento de SLA recalculado.
+     */
+    @Transactional
+    public TicketEvent recordSlaRecalculado(Ticket ticket, TicketPriority prioridadeAnterior,
+                                          TicketPriority novaPrioridade, String motivo) {
+        log.info("Registrando evento de SLA recalculado: {}", ticket.getId());
+
+        TicketEvent event = TicketEvent.builder()
+                .ticket(ticket)
+                .eventType(TicketEventType.SLA_RECALCULADO)
+                .origin(TicketEventOrigin.SISTEMA)
+                .title("Sistema recalculou os prazos de SLA")
+                .description("SLA recalculado devido a alteração de prioridade: " + prioridadeAnterior.getLabel() + " -> " + novaPrioridade.getLabel())
+                .oldValue(prioridadeAnterior.name())
+                .newValue(novaPrioridade.name())
+                .metadata(Map.of(
+                        "motivo", motivo != null ? motivo : "Alteração de prioridade",
+                        "prazoPrimeiraResposta", ticket.getPrazoPrimeiraResposta().toString(),
+                        "prazoResolucao", ticket.getPrazoResolucao().toString(),
+                        "prioridadeAnterior", prioridadeAnterior.getLabel(),
+                        "novaPrioridade", novaPrioridade.getLabel()
+                ))
+                .visibility(CommentVisibility.INTERNO)
+                .build();
+
+        return eventRepository.save(event);
+    }
+
+    /**
+     * Registra evento de SLA cancelado.
+     */
+    @Transactional
+    public TicketEvent recordSlaCancelado(Ticket ticket) {
+        log.info("Registrando evento de SLA cancelado: {}", ticket.getId());
+
+        TicketEvent event = TicketEvent.builder()
+                .ticket(ticket)
+                .eventType(TicketEventType.SLA_CANCELADO)
+                .origin(TicketEventOrigin.SISTEMA)
+                .title("Sistema cancelou o acompanhamento de SLA")
+                .description("SLA encerrado sem resolução porque o chamado foi cancelado")
+                .metadata(Map.of(
+                        "prazoPrimeiraResposta", ticket.getPrazoPrimeiraResposta() != null ? ticket.getPrazoPrimeiraResposta().toString() : null,
+                        "prazoResolucao", ticket.getPrazoResolucao() != null ? ticket.getPrazoResolucao().toString() : null
+                ))
+                .visibility(CommentVisibility.INTERNO)
+                .build();
+
+        return eventRepository.save(event);
+    }
+
+    /**
+     * Registra evento de SLA de primeira resposta em risco.
+     */
+    @Transactional
+    public TicketEvent recordSlaPrimeiraRespostaEmRisco(Ticket ticket) {
+        log.warn("Registrando evento de primeira resposta em risco: {}", ticket.getId());
+
+        TicketEvent event = TicketEvent.builder()
+                .ticket(ticket)
+                .eventType(TicketEventType.SLA_EM_RISCO)
+                .origin(TicketEventOrigin.SISTEMA)
+                .title("Sistema marcou SLA de primeira resposta como em risco")
+                .description("O prazo de primeira resposta está próximo do vencimento")
+                .metadata(Map.of(
+                        "tipoSla", "PRIMEIRA_RESPOSTA",
+                        "prazo", ticket.getPrazoPrimeiraResposta().toString(),
+                        "statusAnterior", "DENTRO_DO_PRAZO",
+                        "statusNovo", "EM_RISCO",
+                        "prioridade", ticket.getPriority().name()
+                ))
+                .visibility(CommentVisibility.INTERNO)
+                .build();
+
+        return eventRepository.save(event);
+    }
+
+    /**
+     * Registra evento de SLA de primeira resposta vencido.
+     */
+    @Transactional
+    public TicketEvent recordSlaPrimeiraRespostaVencido(Ticket ticket) {
+        log.error("Registrando evento de primeira resposta vencida: {}", ticket.getId());
+
+        TicketEvent event = TicketEvent.builder()
+                .ticket(ticket)
+                .eventType(TicketEventType.SLA_VENCIDO)
+                .origin(TicketEventOrigin.SISTEMA)
+                .title("Sistema marcou SLA de primeira resposta como vencido")
+                .description("O prazo de primeira resposta foi ultrapassado")
+                .metadata(Map.of(
+                        "tipoSla", "PRIMEIRA_RESPOSTA",
+                        "prazo", ticket.getPrazoPrimeiraResposta().toString(),
+                        "statusAnterior", ticket.getSlaPrimeiraRespostaStatus().name(),
+                        "statusNovo", "VENCIDO",
+                        "prioridade", ticket.getPriority().name()
+                ))
+                .visibility(CommentVisibility.INTERNO)
+                .build();
+
+        return eventRepository.save(event);
+    }
+
+    /**
+     * Registra evento de SLA de resolução em risco.
+     */
+    @Transactional
+    public TicketEvent recordSlaResolucaoEmRisco(Ticket ticket) {
+        log.warn("Registrando evento de resolução em risco: {}", ticket.getId());
+
+        TicketEvent event = TicketEvent.builder()
+                .ticket(ticket)
+                .eventType(TicketEventType.SLA_EM_RISCO)
+                .origin(TicketEventOrigin.SISTEMA)
+                .title("Sistema marcou SLA de resolução como em risco")
+                .description("O prazo de resolução está próximo do vencimento")
+                .metadata(Map.of(
+                        "tipoSla", "RESOLUCAO",
+                        "prazo", ticket.getPrazoResolucao().toString(),
+                        "statusAnterior", "DENTRO_DO_PRAZO",
+                        "statusNovo", "EM_RISCO",
+                        "prioridade", ticket.getPriority().name()
+                ))
+                .visibility(CommentVisibility.INTERNO)
+                .build();
+
+        return eventRepository.save(event);
+    }
+
+    /**
+     * Registra evento de SLA de resolução vencido.
+     */
+    @Transactional
+    public TicketEvent recordSlaResolucaoVencido(Ticket ticket) {
+        log.error("Registrando evento de resolução vencida: {}", ticket.getId());
+
+        TicketEvent event = TicketEvent.builder()
+                .ticket(ticket)
+                .eventType(TicketEventType.SLA_VENCIDO)
+                .origin(TicketEventOrigin.SISTEMA)
+                .title("Sistema marcou SLA de resolução como vencido")
+                .description("O prazo de resolução foi ultrapassado")
+                .metadata(Map.of(
+                        "tipoSla", "RESOLUCAO",
+                        "prazo", ticket.getPrazoResolucao().toString(),
+                        "statusAnterior", ticket.getSlaResolucaoStatus().name(),
+                        "statusNovo", "VENCIDO",
+                        "prioridade", ticket.getPriority().name()
+                ))
+                .visibility(CommentVisibility.INTERNO)
+                .build();
+
+        return eventRepository.save(event);
+    }
+
+    /**
+     * Registra evento de SLA de resolução registrada (usado após resolver).
+     */
+    @Transactional
+    public TicketEvent recordSlaResolucaoRegistrada(Ticket ticket) {
+        log.debug("Registrando evento de resolução registrada: {}", ticket.getId());
+
+        boolean cumprido = ticket.getSlaResolucaoStatus() == SlaStatus.CUMPRIDO;
+
+        TicketEvent event = TicketEvent.builder()
+                .ticket(ticket)
+                .eventType(cumprido ? TicketEventType.SLA_RESOLUCAO_CUMPRIDA : TicketEventType.SLA_RESOLUCAO_VIOLADA)
+                .origin(TicketEventOrigin.SISTEMA)
+                .title(cumprido
+                        ? "Sistema marcou SLA de resolução como cumprido"
+                        : "Sistema marcou SLA de resolução como violado")
+                .description(cumprido
+                        ? "Chamado resolvido dentro do prazo"
+                        : "Chamado resolvido fora do prazo")
+                .metadata(Map.of(
+                        "tempoSegundos", ticket.getTempoResolucaoSegundos(),
+                        "prazoResolucao", ticket.getPrazoResolucao().toString(),
+                        "dataResolucao", ticket.getDataResolucao().toString(),
+                        "statusSla", ticket.getSlaResolucaoStatus().name()
                 ))
                 .visibility(CommentVisibility.INTERNO)
                 .build();

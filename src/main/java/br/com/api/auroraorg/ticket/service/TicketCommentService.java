@@ -44,6 +44,7 @@ public class TicketCommentService {
     private final TicketCommentRepository commentRepository;
     private final TicketRepository ticketRepository;
     private final TicketHistoryService historyService;
+    private final SlaService slaService;
     private final SecurityUtils securityUtils;
 
     // ========== OPERAÇÕES DE CRIAÇÃO ==========
@@ -76,6 +77,11 @@ public class TicketCommentService {
                 .build();
 
         TicketComment saved = commentRepository.save(comment);
+
+        // Se agente/admin comentou e ainda não teve primeira resposta, registra
+        if (currentUser.getRole() == UserRole.AGENTE || currentUser.getRole() == UserRole.ADMIN) {
+            slaService.registrarPrimeiraResposta(ticketId, currentUser);
+        }
 
         // Registra evento de histórico
         historyService.recordCommentAdded(ticket, currentUser, saved);

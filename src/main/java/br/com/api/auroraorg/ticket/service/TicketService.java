@@ -48,7 +48,8 @@ public class TicketService {
     private final TicketMapper ticketMapper;
     private final TicketStatusTransition statusTransition;
     private final SecurityUtils securityUtils;
-    private final SlaCalculator slaCalculator;
+    private final SlaCalculadoraService slaCalculadora;
+    private final SlaService slaService;
     private final TicketHistoryService historyService;
 
     // ========== OPERAÇÕES CRUD ==========
@@ -75,9 +76,11 @@ public class TicketService {
 
         Ticket ticket = ticketMapper.toEntity(request);
         ticket.setRequester(currentUser);
-        ticket.setSlaDueAt(slaCalculator.calculateDueDate(request.priority()));
         ticket.setCategoria(categoria);
         ticket.setCategory(categoria.getName());
+        // SLA é inicializado no prePersist + slaService após save para ter createdAt definido
+        slaService.inicializarSla(ticket);
+        ticket.setSlaDueAt(ticket.getPrazoResolucao());
 
         // Se a categoria tem fila padrão, o chamado entra automaticamente nessa fila
         if (categoria.getFilaPadrao() != null) {
@@ -177,6 +180,11 @@ public class TicketService {
         updateStatusAndTimestamps(ticket, newStatus);
 
         Ticket updated = ticketRepository.save(ticket);
+
+        // Se mudou para EM_ATENDIMENTO e ainda não teve primeira resposta, registra
+        if (newStatus == TicketStatus.EM_ATENDIMENTO && !updated.hasPrimeiraResposta()) {
+            slaService.registrarPrimeiraResposta(id, currentUser);
+        }
 
         // Registra evento de alteração de status
         historyService.recordStatusChanged(updated, currentUser, currentStatus, newStatus);
@@ -308,6 +316,9 @@ public class TicketService {
         ticket.cancel();
         Ticket updated = ticketRepository.save(ticket);
 
+        // Cancela SLA
+        slaService.cancelarSla(id);
+
         // Registra evento de cancelamento
         historyService.recordTicketCancelled(updated, currentUser);
 
@@ -334,7 +345,11 @@ public class TicketService {
         statusTransition.validateTransition(ticket.getStatus(), TicketStatus.RESOLVIDO);
 
         ticket.markAsResolved();
+        ticket.registrarResolucao();
         Ticket updated = ticketRepository.save(ticket);
+
+        // Registra SLA de resolução
+        slaService.registrarResolucao(id);
 
         // Registra evento de resolução
         historyService.recordTicketResolved(updated, currentUser);

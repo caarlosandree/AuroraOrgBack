@@ -33,6 +33,7 @@ public class ChamadoAtribuicaoService {
     private final UserRepository userRepository;
     private final SecurityUtils securityUtils;
     private final TicketHistoryService historyService;
+    private final SlaService slaService;
 
     @Transactional
     public ChamadoAtribuicaoResponse transferirFila(UUID chamadoId, TransferirFilaChamadoRequest request) {
@@ -182,6 +183,9 @@ public class ChamadoAtribuicaoService {
         }
 
         Ticket updated = ticketRepository.save(ticket);
+
+        // Registra primeira resposta se ainda não ocorreu
+        slaService.registrarPrimeiraResposta(chamadoId, currentUser);
 
         historyService.recordChamadoAssumido(updated, currentUser);
 

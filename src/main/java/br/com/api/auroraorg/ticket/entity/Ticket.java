@@ -1,5 +1,6 @@
 package br.com.api.auroraorg.ticket.entity;
 
+import br.com.api.auroraorg.ticket.enums.SlaStatus;
 import br.com.api.auroraorg.ticket.enums.TicketPriority;
 import br.com.api.auroraorg.ticket.enums.TicketStatus;
 import br.com.api.auroraorg.user.entity.User;
@@ -9,6 +10,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -103,6 +105,66 @@ public class Ticket {
     private LocalDateTime resolvedAt;
 
     /**
+     * Data/hora limite para primeira resposta do agente.
+     */
+    @Column(name = "prazo_primeira_resposta")
+    private LocalDateTime prazoPrimeiraResposta;
+
+    /**
+     * Data/hora limite para resolução do chamado.
+     * Substitui sla_due_at com granularidade maior.
+     */
+    @Column(name = "prazo_resolucao")
+    private LocalDateTime prazoResolucao;
+
+    /**
+     * Data/hora em que o agente respondeu pela primeira vez.
+     */
+    @Column(name = "data_primeira_resposta")
+    private LocalDateTime dataPrimeiraResposta;
+
+    /**
+     * Data/hora em que o chamado foi resolvido (pode coincidir com resolved_at).
+     */
+    @Column(name = "data_resolucao")
+    private LocalDateTime dataResolucao;
+
+    /**
+     * Status do SLA de primeira resposta.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "sla_primeira_resposta_status", length = 30)
+    @Builder.Default
+    private SlaStatus slaPrimeiraRespostaStatus = SlaStatus.DENTRO_DO_PRAZO;
+
+    /**
+     * Status do SLA de resolução.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "sla_resolucao_status", length = 30)
+    @Builder.Default
+    private SlaStatus slaResolucaoStatus = SlaStatus.DENTRO_DO_PRAZO;
+
+    /**
+     * Usuário que deu a primeira resposta ao chamado.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "primeira_resposta_por")
+    private User primeiraRespostaPor;
+
+    /**
+     * Tempo decorrido em segundos até a primeira resposta.
+     */
+    @Column(name = "tempo_primeira_resposta_segundos")
+    private Long tempoPrimeiraRespostaSegundos;
+
+    /**
+     * Tempo decorrido em segundos até a resolução.
+     */
+    @Column(name = "tempo_resolucao_segundos")
+    private Long tempoResolucaoSegundos;
+
+    /**
      * Hook executado antes de persistir a entidade.
      * Define: id, timestamps, status inicial.
      */
@@ -186,19 +248,68 @@ public class Ticket {
     }
 
     /**
-     * Verifica se o SLA está vencido.
+     * Verifica se o SLA de resolução está vencido (retrocompatibilidade).
      */
     public boolean isSlaOverdue() {
+        if (this.prazoResolucao != null) {
+            return LocalDateTime.now().isAfter(this.prazoResolucao);
+        }
         return LocalDateTime.now().isAfter(this.slaDueAt);
     }
 
     /**
-     * Calcula o tempo restante do SLA em horas.
+     * Calcula o tempo restante do SLA de resolução em horas (retrocompatibilidade).
      */
     public long getRemainingSlaHours() {
-        if (isSlaOverdue()) {
+        LocalDateTime prazo = this.prazoResolucao != null ? this.prazoResolucao : this.slaDueAt;
+        if (prazo == null) {
             return 0;
         }
-        return java.time.Duration.between(LocalDateTime.now(), this.slaDueAt).toHours();
+        if (LocalDateTime.now().isAfter(prazo)) {
+            return 0;
+        }
+        return java.time.Duration.between(LocalDateTime.now(), prazo).toHours();
+    }
+
+    /**
+     * Verifica se o chamado permite atualização de SLA.
+     * Chamados RESOLVIDOS, FECHADOS ou CANCELADOS não permitem.
+     */
+    public boolean allowsSlaUpdate() {
+        return this.status != TicketStatus.RESOLVIDO && !this.status.isTerminal();
+    }
+
+    /**
+     * Verifica se já houve primeira resposta registrada.
+     */
+    public boolean hasPrimeiraResposta() {
+        return this.dataPrimeiraResposta != null;
+    }
+
+    /**
+     * Registra a primeira resposta ao chamado.
+     */
+    public void registrarPrimeiraResposta(User agente) {
+        this.dataPrimeiraResposta = LocalDateTime.now();
+        this.primeiraRespostaPor = agente;
+        this.tempoPrimeiraRespostaSegundos = Duration.between(this.createdAt, this.dataPrimeiraResposta).getSeconds();
+    }
+
+    /**
+     * Registra a resolução do chamado.
+     */
+    public void registrarResolucao() {
+        this.dataResolucao = LocalDateTime.now();
+        this.tempoResolucaoSegundos = Duration.between(this.createdAt, this.dataResolucao).getSeconds();
+    }
+
+    /**
+     * Verifica se o chamado está em status que permite monitoramento de SLA.
+     */
+    public boolean isSlaMonitored() {
+        return this.status == TicketStatus.ABERTO
+                || this.status == TicketStatus.EM_TRIAGEM
+                || this.status == TicketStatus.EM_ATENDIMENTO
+                || this.status == TicketStatus.AGUARDANDO_SOLICITANTE;
     }
 }

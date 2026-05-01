@@ -49,7 +49,14 @@ public enum TicketEventType {
 
     // Eventos de SLA
     SLA_EM_RISCO("SLA em risco", "SLA próximo do vencimento"),
-    SLA_VENCIDO("SLA vencido", "SLA foi violado");
+    SLA_VENCIDO("SLA vencido", "SLA foi violado"),
+    SLA_PRIMEIRA_RESPOSTA_REGISTRADA("Primeira resposta registrada", "Agente respondeu ao chamado pela primeira vez"),
+    SLA_PRIMEIRA_RESPOSTA_CUMPRIDA("SLA de primeira resposta cumprido", "Primeira resposta dentro do prazo"),
+    SLA_PRIMEIRA_RESPOSTA_VIOLADA("SLA de primeira resposta violado", "Primeira resposta fora do prazo"),
+    SLA_RESOLUCAO_CUMPRIDA("SLA de resolução cumprido", "Chamado resolvido dentro do prazo"),
+    SLA_RESOLUCAO_VIOLADA("SLA de resolução violado", "Chamado resolvido fora do prazo"),
+    SLA_RECALCULADO("SLA recalculado", "Prazos de SLA recalculados devido a mudança de prioridade"),
+    SLA_CANCELADO("SLA cancelado", "SLA encerrado sem resolução");
 
     private final String label;
     private final String description;
@@ -84,7 +91,14 @@ public enum TicketEventType {
      * Verifica se é um evento de SLA.
      */
     public boolean isSlaEvent() {
-        return this == SLA_EM_RISCO || this == SLA_VENCIDO;
+        return this == SLA_EM_RISCO || this == SLA_VENCIDO
+                || this == SLA_PRIMEIRA_RESPOSTA_REGISTRADA
+                || this == SLA_PRIMEIRA_RESPOSTA_CUMPRIDA
+                || this == SLA_PRIMEIRA_RESPOSTA_VIOLADA
+                || this == SLA_RESOLUCAO_CUMPRIDA
+                || this == SLA_RESOLUCAO_VIOLADA
+                || this == SLA_RECALCULADO
+                || this == SLA_CANCELADO;
     }
 
     /**
