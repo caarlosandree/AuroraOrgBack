@@ -21,6 +21,12 @@ spring:
     enabled: true
     locations: classpath:db/migration
 
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 12MB
+
 security:
   jwt:
     secret: ${JWT_SECRET}
@@ -38,3 +44,21 @@ springdoc:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
+
+app:
+  storage:
+    local:
+      base-path: ${STORAGE_PATH:./storage}
+  attachments:
+    max-file-size-bytes: 10485760  # 10 MB
+    max-files-per-ticket: 20
+    allowed-content-types:
+      - image/png
+      - image/jpeg
+      - image/webp
+      - application/pdf
+      - text/plain
+      - application/msword
+      - application/vnd.openxmlformats-officedocument.wordprocessingml.document
+      - application/vnd.ms-excel
+      - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
