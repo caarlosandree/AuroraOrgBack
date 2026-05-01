@@ -98,7 +98,7 @@ public interface TicketRepository extends JpaRepository<Ticket, UUID>, JpaSpecif
             br.com.api.auroraorg.ticket.enums.TicketStatus.ABERTO,
             br.com.api.auroraorg.ticket.enums.TicketStatus.EM_TRIAGEM,
             br.com.api.auroraorg.ticket.enums.TicketStatus.EM_ATENDIMENTO,
-            br.com.auroraorg.ticket.enums.TicketStatus.AGUARDANDO_SOLICITANTE
+            br.com.api.auroraorg.ticket.enums.TicketStatus.AGUARDANDO_SOLICITANTE
         )
         ORDER BY t.priority DESC, t.createdAt ASC
         """)
