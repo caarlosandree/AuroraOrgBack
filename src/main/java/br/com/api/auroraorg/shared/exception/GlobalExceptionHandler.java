@@ -289,6 +289,92 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
+    // ========== ANEXO EXCEPTIONS ==========
+
+    @ExceptionHandler(br.com.api.auroraorg.ticket.exception.AnexoNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleAnexoNotFoundException(
+            br.com.api.auroraorg.ticket.exception.AnexoNotFoundException ex, HttpServletRequest request) {
+        log.warn("Anexo não encontrado: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(br.com.api.auroraorg.ticket.exception.ArquivoInvalidoException.class)
+    public ResponseEntity<ErrorResponse> handleArquivoInvalidoException(
+            br.com.api.auroraorg.ticket.exception.ArquivoInvalidoException ex, HttpServletRequest request) {
+        log.warn("Arquivo inválido: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(br.com.api.auroraorg.ticket.exception.AnexoPermissaoNegadaException.class)
+    public ResponseEntity<ErrorResponse> handleAnexoPermissaoNegadaException(
+            br.com.api.auroraorg.ticket.exception.AnexoPermissaoNegadaException ex, HttpServletRequest request) {
+        log.warn("Permissão negada para anexo: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.FORBIDDEN.value(),
+                HttpStatus.FORBIDDEN.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
+    @ExceptionHandler(br.com.api.auroraorg.ticket.exception.LimiteAnexosExcedidoException.class)
+    public ResponseEntity<ErrorResponse> handleLimiteAnexosExcedidoException(
+            br.com.api.auroraorg.ticket.exception.LimiteAnexosExcedidoException ex, HttpServletRequest request) {
+        log.warn("Limite de anexos excedido: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.UNPROCESSABLE_ENTITY.value(),
+                "Unprocessable Entity",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error);
+    }
+
+    @ExceptionHandler(br.com.api.auroraorg.ticket.exception.AnexoStorageException.class)
+    public ResponseEntity<ErrorResponse> handleAnexoStorageException(
+            br.com.api.auroraorg.ticket.exception.AnexoStorageException ex, HttpServletRequest request) {
+        log.error("Erro de storage de anexo: {}", ex.getMessage(), ex);
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+                "Erro ao processar o arquivo. Tente novamente.",
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+
+    @ExceptionHandler(br.com.api.auroraorg.ticket.exception.ChamadoNaoPermiteAnexoException.class)
+    public ResponseEntity<ErrorResponse> handleChamadoNaoPermiteAnexoException(
+            br.com.api.auroraorg.ticket.exception.ChamadoNaoPermiteAnexoException ex, HttpServletRequest request) {
+        log.warn("Chamado não permite anexo: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.UNPROCESSABLE_ENTITY.value(),
+                "Unprocessable Entity",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error);
+    }
+
     // ========== GLOBAL EXCEPTION ==========
 
     @ExceptionHandler(Exception.class)
