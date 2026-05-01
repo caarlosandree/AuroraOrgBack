@@ -67,15 +67,15 @@ CREATE UNIQUE INDEX idx_sla_politicas_unica_ativa
 UPDATE tickets
 SET prazo_resolucao = sla_due_at,
     sla_resolucao_status = CASE
-        WHEN status IN ('RESOLVIDO', 'FECHADO') AND resolved_at IS NOT NULL AND resolved_at <= sla_due_at THEN 'CUMPRIDO'
-        WHEN status IN ('RESOLVIDO', 'FECHADO') AND resolved_at IS NOT NULL AND resolved_at > sla_due_at THEN 'VIOLADO'
-        WHEN status = 'CANCELADO' THEN 'CANCELADO'
-        WHEN sla_due_at < NOW() THEN 'VENCIDO'
-        ELSE 'DENTRO_DO_PRAZO'
+        WHEN status IN ('RESOLVIDO', 'FECHADO') AND resolved_at IS NOT NULL AND resolved_at <= sla_due_at THEN 'CUMPRIDO'::sla_status
+        WHEN status IN ('RESOLVIDO', 'FECHADO') AND resolved_at IS NOT NULL AND resolved_at > sla_due_at THEN 'VIOLADO'::sla_status
+        WHEN status = 'CANCELADO' THEN 'CANCELADO'::sla_status
+        WHEN sla_due_at < NOW() THEN 'VENCIDO'::sla_status
+        ELSE 'DENTRO_DO_PRAZO'::sla_status
     END,
     sla_primeira_resposta_status = CASE
-        WHEN status = 'CANCELADO' THEN 'CANCELADO'
-        ELSE 'DENTRO_DO_PRAZO'
+        WHEN status = 'CANCELADO' THEN 'CANCELADO'::sla_status
+        ELSE 'DENTRO_DO_PRAZO'::sla_status
     END;
 
 -- Comentários
