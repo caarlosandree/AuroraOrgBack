@@ -47,6 +47,7 @@ public class TicketService {
     private final TicketStatusTransition statusTransition;
     private final SecurityUtils securityUtils;
     private final SlaCalculator slaCalculator;
+    private final TicketHistoryService historyService;
 
     // ========== OPERAÇÕES CRUD ==========
 
@@ -72,10 +73,13 @@ public class TicketService {
         ticket.setSlaDueAt(slaCalculator.calculateDueDate(request.priority()));
 
         Ticket saved = ticketRepository.save(ticket);
-        
-        log.info("Chamado criado com sucesso. ID: {}, SLA vencimento: {}", 
+
+        // Registra evento de criação
+        historyService.recordTicketCreated(saved, currentUser);
+
+        log.info("Chamado criado com sucesso. ID: {}, SLA vencimento: {}",
                 saved.getId(), saved.getSlaDueAt());
-        
+
         return ticketMapper.toResponse(saved);
     }
 
@@ -159,6 +163,10 @@ public class TicketService {
         updateStatusAndTimestamps(ticket, newStatus);
 
         Ticket updated = ticketRepository.save(ticket);
+
+        // Registra evento de alteração de status
+        historyService.recordStatusChanged(updated, currentUser, currentStatus, newStatus);
+
         return ticketMapper.toResponse(updated);
     }
 
@@ -198,14 +206,23 @@ public class TicketService {
                 id, newAssignee.getEmail(), 
                 ticket.hasAssignee() ? ticket.getAssignee().getEmail() : "nenhum");
 
+        User oldAssignee = ticket.getAssignee();
         ticket.setAssignee(newAssignee);
-        
+
         // Se estava ABERTO, muda para EM_TRIAGEM
         if (ticket.getStatus() == TicketStatus.ABERTO) {
             ticket.setStatus(TicketStatus.EM_TRIAGEM);
         }
 
         Ticket updated = ticketRepository.save(ticket);
+
+        // Registra evento de atribuição
+        if (oldAssignee == null) {
+            historyService.recordAssigneeAssigned(updated, currentUser, newAssignee);
+        } else {
+            historyService.recordAssigneeChanged(updated, currentUser, oldAssignee, newAssignee);
+        }
+
         return ticketMapper.toResponse(updated);
     }
 
@@ -276,6 +293,10 @@ public class TicketService {
 
         ticket.cancel();
         Ticket updated = ticketRepository.save(ticket);
+
+        // Registra evento de cancelamento
+        historyService.recordTicketCancelled(updated, currentUser);
+
         return ticketMapper.toResponse(updated);
     }
 
@@ -300,6 +321,10 @@ public class TicketService {
 
         ticket.markAsResolved();
         Ticket updated = ticketRepository.save(ticket);
+
+        // Registra evento de resolução
+        historyService.recordTicketResolved(updated, currentUser);
+
         return ticketMapper.toResponse(updated);
     }
 
@@ -332,6 +357,10 @@ public class TicketService {
 
         ticket.close();
         Ticket updated = ticketRepository.save(ticket);
+
+        // Registra evento de fechamento
+        historyService.recordTicketClosed(updated, currentUser);
+
         return ticketMapper.toResponse(updated);
     }
 
