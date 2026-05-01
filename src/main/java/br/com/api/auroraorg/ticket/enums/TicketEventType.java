@@ -36,6 +36,17 @@ public enum TicketEventType {
     ANEXO_ADICIONADO("Anexo adicionado", "Arquivo anexado ao chamado"),
     ANEXO_REMOVIDO("Anexo removido", "Anexo removido logicamente do chamado"),
 
+    // Eventos de fila e categoria
+    FILA_ALTERADA("Fila alterada", "Chamado transferido para outra fila"),
+    CATEGORIA_ALTERADA("Categoria alterada", "Categoria do chamado foi alterada"),
+
+    // Eventos de agente em fila
+    AGENTE_ADICIONADO_FILA("Agente adicionado à fila", "Novo agente vinculado à fila"),
+    AGENTE_REMOVIDO_FILA("Agente removido da fila", "Agente desvinculado da fila"),
+
+    // Eventos de assumir chamado
+    CHAMADO_ASSUMIDO("Chamado assumido", "Agente assumiu o chamado"),
+
     // Eventos de SLA
     SLA_EM_RISCO("SLA em risco", "SLA próximo do vencimento"),
     SLA_VENCIDO("SLA vencido", "SLA foi violado");

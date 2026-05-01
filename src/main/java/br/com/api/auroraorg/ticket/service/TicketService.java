@@ -7,6 +7,7 @@ import br.com.api.auroraorg.ticket.enums.TicketStatus;
 import br.com.api.auroraorg.ticket.exception.*;
 import br.com.api.auroraorg.ticket.mapper.TicketMapper;
 import br.com.api.auroraorg.ticket.permission.TicketStatusTransition;
+import br.com.api.auroraorg.ticket.repository.CategoriaRepository;
 import br.com.api.auroraorg.ticket.repository.TicketRepository;
 import br.com.api.auroraorg.ticket.repository.TicketSpecifications;
 import br.com.api.auroraorg.ticket.util.SecurityUtils;
@@ -43,6 +44,7 @@ public class TicketService {
 
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
+    private final CategoriaRepository categoriaRepository;
     private final TicketMapper ticketMapper;
     private final TicketStatusTransition statusTransition;
     private final SecurityUtils securityUtils;
@@ -64,13 +66,25 @@ public class TicketService {
     @Transactional
     public TicketResponse createTicket(CreateTicketRequest request) {
         User currentUser = securityUtils.getCurrentUserOrThrow();
-        
-        log.info("Criando chamado. Solicitante: {}, Prioridade: {}", 
+
+        log.info("Criando chamado. Solicitante: {}, Prioridade: {}",
                 currentUser.getEmail(), request.priority());
+
+        var categoria = categoriaRepository.findById(request.categoriaId())
+                .orElseThrow(() -> new CategoriaNotFoundException(request.categoriaId()));
 
         Ticket ticket = ticketMapper.toEntity(request);
         ticket.setRequester(currentUser);
         ticket.setSlaDueAt(slaCalculator.calculateDueDate(request.priority()));
+        ticket.setCategoria(categoria);
+        ticket.setCategory(categoria.getName());
+
+        // Se a categoria tem fila padrão, o chamado entra automaticamente nessa fila
+        if (categoria.getFilaPadrao() != null) {
+            ticket.setFila(categoria.getFilaPadrao());
+            log.info("Chamado direcionado automaticamente para fila {} (categoria {})",
+                    categoria.getFilaPadrao().getName(), categoria.getName());
+        }
 
         Ticket saved = ticketRepository.save(ticket);
 

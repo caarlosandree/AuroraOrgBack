@@ -207,6 +207,170 @@ public class TicketHistoryService {
     }
 
     /**
+     * Alias em português para recordAssigneeAssigned.
+     */
+    @Transactional
+    public TicketEvent recordResponsavelAtribuido(Ticket ticket, User actor, User assignee) {
+        return recordAssigneeAssigned(ticket, actor, assignee);
+    }
+
+    /**
+     * Alias em português para recordAssigneeChanged.
+     */
+    @Transactional
+    public TicketEvent recordResponsavelAlterado(Ticket ticket, User actor, User oldAssignee, User newAssignee) {
+        return recordAssigneeChanged(ticket, actor, oldAssignee, newAssignee);
+    }
+
+    /**
+     * Alias em português para recordAssigneeRemoved.
+     */
+    @Transactional
+    public TicketEvent recordResponsavelRemovido(Ticket ticket, User actor, User oldAssignee) {
+        return recordAssigneeRemoved(ticket, actor, oldAssignee);
+    }
+
+    /**
+     * Registra evento de alteração de fila.
+     */
+    @Transactional
+    public TicketEvent recordFilaAlterada(Ticket ticket, User actor, String oldFilaName, String newFilaName) {
+        log.debug("Registrando evento de alteração de fila: {} -> {}", oldFilaName, newFilaName);
+
+        String title = actor.getName() + " alterou a fila do chamado";
+
+        TicketEvent event = TicketEvent.builder()
+                .ticket(ticket)
+                .eventType(TicketEventType.FILA_ALTERADA)
+                .actor(actor)
+                .origin(TicketEventOrigin.USUARIO)
+                .title(title)
+                .description("Fila alterada de " + (oldFilaName != null ? oldFilaName : "nenhuma") + " para " + newFilaName)
+                .oldValue(oldFilaName)
+                .newValue(newFilaName)
+                .metadata(Map.of(
+                        "oldFilaName", oldFilaName != null ? oldFilaName : "nenhuma",
+                        "newFilaName", newFilaName
+                ))
+                .visibility(CommentVisibility.PUBLICO)
+                .build();
+
+        return eventRepository.save(event);
+    }
+
+    /**
+     * Registra evento de alteração de categoria.
+     */
+    @Transactional
+    public TicketEvent recordCategoriaAlterada(Ticket ticket, User actor, String oldCategoriaName, String newCategoriaName) {
+        log.debug("Registrando evento de alteração de categoria: {} -> {}", oldCategoriaName, newCategoriaName);
+
+        String title = actor.getName() + " alterou a categoria do chamado";
+
+        TicketEvent event = TicketEvent.builder()
+                .ticket(ticket)
+                .eventType(TicketEventType.CATEGORIA_ALTERADA)
+                .actor(actor)
+                .origin(TicketEventOrigin.USUARIO)
+                .title(title)
+                .description("Categoria alterada de " + (oldCategoriaName != null ? oldCategoriaName : "nenhuma") + " para " + newCategoriaName)
+                .oldValue(oldCategoriaName)
+                .newValue(newCategoriaName)
+                .metadata(Map.of(
+                        "oldCategoriaName", oldCategoriaName != null ? oldCategoriaName : "nenhuma",
+                        "newCategoriaName", newCategoriaName
+                ))
+                .visibility(CommentVisibility.PUBLICO)
+                .build();
+
+        return eventRepository.save(event);
+    }
+
+    /**
+     * Registra evento de chamado assumido por agente.
+     */
+    @Transactional
+    public TicketEvent recordChamadoAssumido(Ticket ticket, User actor) {
+        log.debug("Registrando evento de chamado assumido: {}", actor.getEmail());
+
+        String title = actor.getName() + " assumiu o chamado";
+
+        TicketEvent event = TicketEvent.builder()
+                .ticket(ticket)
+                .eventType(TicketEventType.CHAMADO_ASSUMIDO)
+                .actor(actor)
+                .origin(TicketEventOrigin.USUARIO)
+                .title(title)
+                .description("O agente " + actor.getName() + " assumiu o chamado")
+                .newValue(actor.getName())
+                .metadata(Map.of(
+                        "agenteId", actor.getId(),
+                        "agenteName", actor.getName(),
+                        "agenteEmail", actor.getEmail()
+                ))
+                .visibility(CommentVisibility.PUBLICO)
+                .build();
+
+        return eventRepository.save(event);
+    }
+
+    /**
+     * Registra evento de adição de agente a uma fila.
+     */
+    @Transactional
+    public TicketEvent recordAgenteAdicionadoFila(Ticket ticket, User actor, User agente, String filaName) {
+        log.debug("Registrando evento de agente adicionado à fila: {} -> {}", agente.getName(), filaName);
+
+        String title = actor.getName() + " adicionou " + agente.getName() + " à fila " + filaName;
+
+        TicketEvent event = TicketEvent.builder()
+                .ticket(ticket)
+                .eventType(TicketEventType.AGENTE_ADICIONADO_FILA)
+                .actor(actor)
+                .origin(TicketEventOrigin.USUARIO)
+                .title(title)
+                .description("Agente " + agente.getName() + " vinculado à fila " + filaName)
+                .newValue(agente.getName())
+                .metadata(Map.of(
+                        "agenteId", agente.getId(),
+                        "agenteName", agente.getName(),
+                        "filaName", filaName
+                ))
+                .visibility(CommentVisibility.INTERNO)
+                .build();
+
+        return eventRepository.save(event);
+    }
+
+    /**
+     * Registra evento de remoção de agente de uma fila.
+     */
+    @Transactional
+    public TicketEvent recordAgenteRemovidoFila(Ticket ticket, User actor, User agente, String filaName) {
+        log.debug("Registrando evento de agente removido da fila: {} -> {}", agente.getName(), filaName);
+
+        String title = actor.getName() + " removeu " + agente.getName() + " da fila " + filaName;
+
+        TicketEvent event = TicketEvent.builder()
+                .ticket(ticket)
+                .eventType(TicketEventType.AGENTE_REMOVIDO_FILA)
+                .actor(actor)
+                .origin(TicketEventOrigin.USUARIO)
+                .title(title)
+                .description("Agente " + agente.getName() + " desvinculado da fila " + filaName)
+                .oldValue(agente.getName())
+                .metadata(Map.of(
+                        "agenteId", agente.getId(),
+                        "agenteName", agente.getName(),
+                        "filaName", filaName
+                ))
+                .visibility(CommentVisibility.INTERNO)
+                .build();
+
+        return eventRepository.save(event);
+    }
+
+    /**
      * Registra evento de resolução de chamado.
      */
     @Transactional

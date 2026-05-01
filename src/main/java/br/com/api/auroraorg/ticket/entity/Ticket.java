@@ -53,6 +53,20 @@ public class Ticket {
     private String category;
 
     /**
+     * Fila de atendimento atual do chamado.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fila_id")
+    private Fila fila;
+
+    /**
+     * Categoria de classificação do chamado.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "categoria_id")
+    private Categoria categoria;
+
+    /**
      * Solicitante do chamado (quem criou).
      * Nunca pode ser nulo.
      */

@@ -1,6 +1,7 @@
 package br.com.api.auroraorg.ticket.dto;
 
 import br.com.api.auroraorg.ticket.enums.TicketPriority;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -26,7 +27,11 @@ public record CreateTicketRequest(
     String description,
     
     TicketPriority priority,
-    
+
+    @NotNull(message = "A categoria é obrigatória")
+    @Schema(description = "ID da categoria do chamado", example = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11")
+    java.util.UUID categoriaId,
+
     @Size(max = 100, message = "A categoria deve ter no máximo {max} caracteres")
     String category
 ) {
