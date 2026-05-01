@@ -1,0 +1,2 @@
+-- Usuário admin será criado via DataInitializer para garantir senha BCrypt válida
+-- Verifique br.com.api.auroraorg.shared.config.DataInitializer
