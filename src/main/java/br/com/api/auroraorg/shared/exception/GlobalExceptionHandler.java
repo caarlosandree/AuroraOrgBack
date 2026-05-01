@@ -173,6 +173,80 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
+    // ========== COMMENT EXCEPTIONS ==========
+
+    @ExceptionHandler(br.com.api.auroraorg.ticket.exception.CommentNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleCommentNotFoundException(
+            br.com.api.auroraorg.ticket.exception.CommentNotFoundException ex, HttpServletRequest request) {
+        log.warn("Comentário não encontrado: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(br.com.api.auroraorg.ticket.exception.CommentPermissionDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleCommentPermissionDeniedException(
+            br.com.api.auroraorg.ticket.exception.CommentPermissionDeniedException ex, HttpServletRequest request) {
+        log.warn("Permissão negada para comentário: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.FORBIDDEN.value(),
+                HttpStatus.FORBIDDEN.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
+    @ExceptionHandler(br.com.api.auroraorg.ticket.exception.CommentNotAllowedException.class)
+    public ResponseEntity<ErrorResponse> handleCommentNotAllowedException(
+            br.com.api.auroraorg.ticket.exception.CommentNotAllowedException ex, HttpServletRequest request) {
+        log.warn("Operação não permitida em comentário: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(br.com.api.auroraorg.ticket.exception.CommentRemovedException.class)
+    public ResponseEntity<ErrorResponse> handleCommentRemovedException(
+            br.com.api.auroraorg.ticket.exception.CommentRemovedException ex, HttpServletRequest request) {
+        log.warn("Tentativa de operação em comentário removido: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    // ========== EVENT EXCEPTIONS ==========
+
+    @ExceptionHandler(br.com.api.auroraorg.ticket.exception.TicketEventNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleTicketEventNotFoundException(
+            br.com.api.auroraorg.ticket.exception.TicketEventNotFoundException ex, HttpServletRequest request) {
+        log.warn("Evento não encontrado: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
     @ExceptionHandler(InvalidStatusTransitionException.class)
     public ResponseEntity<ErrorResponse> handleInvalidStatusTransitionException(
             InvalidStatusTransitionException ex, HttpServletRequest request) {
