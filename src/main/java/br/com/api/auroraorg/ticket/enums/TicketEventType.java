@@ -32,6 +32,10 @@ public enum TicketEventType {
     RESPONSAVEL_ALTERADO("Responsável alterado", "Troca de responsável"),
     RESPONSAVEL_REMOVIDO("Responsável removido", "Responsável removido do chamado"),
 
+    // Eventos de anexos
+    ANEXO_ADICIONADO("Anexo adicionado", "Arquivo anexado ao chamado"),
+    ANEXO_REMOVIDO("Anexo removido", "Anexo removido logicamente do chamado"),
+
     // Eventos de SLA
     SLA_EM_RISCO("SLA em risco", "SLA próximo do vencimento"),
     SLA_VENCIDO("SLA vencido", "SLA foi violado");
