@@ -375,6 +375,134 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error);
     }
 
+    // ========== FILA E CATEGORIA EXCEPTIONS ==========
+
+    @ExceptionHandler(br.com.api.auroraorg.ticket.exception.FilaNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleFilaNotFoundException(
+            br.com.api.auroraorg.ticket.exception.FilaNotFoundException ex, HttpServletRequest request) {
+        log.warn("Fila não encontrada: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(br.com.api.auroraorg.ticket.exception.CategoriaNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleCategoriaNotFoundException(
+            br.com.api.auroraorg.ticket.exception.CategoriaNotFoundException ex, HttpServletRequest request) {
+        log.warn("Categoria não encontrada: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(br.com.api.auroraorg.ticket.exception.FilaDuplicadaException.class)
+    public ResponseEntity<ErrorResponse> handleFilaDuplicadaException(
+            br.com.api.auroraorg.ticket.exception.FilaDuplicadaException ex, HttpServletRequest request) {
+        log.warn("Fila duplicada: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(br.com.api.auroraorg.ticket.exception.CategoriaDuplicadaException.class)
+    public ResponseEntity<ErrorResponse> handleCategoriaDuplicadaException(
+            br.com.api.auroraorg.ticket.exception.CategoriaDuplicadaException ex, HttpServletRequest request) {
+        log.warn("Categoria duplicada: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(br.com.api.auroraorg.ticket.exception.AgenteNaoPermitidoException.class)
+    public ResponseEntity<ErrorResponse> handleAgenteNaoPermitidoException(
+            br.com.api.auroraorg.ticket.exception.AgenteNaoPermitidoException ex, HttpServletRequest request) {
+        log.warn("Agente não permitido: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(br.com.api.auroraorg.ticket.exception.AgenteJaVinculadoException.class)
+    public ResponseEntity<ErrorResponse> handleAgenteJaVinculadoException(
+            br.com.api.auroraorg.ticket.exception.AgenteJaVinculadoException ex, HttpServletRequest request) {
+        log.warn("Agente já vinculado: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(br.com.api.auroraorg.ticket.exception.AgenteNaoVinculadoException.class)
+    public ResponseEntity<ErrorResponse> handleAgenteNaoVinculadoException(
+            br.com.api.auroraorg.ticket.exception.AgenteNaoVinculadoException ex, HttpServletRequest request) {
+        log.warn("Agente não vinculado: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(br.com.api.auroraorg.ticket.exception.ChamadoNaoPodeSerAtribuidoException.class)
+    public ResponseEntity<ErrorResponse> handleChamadoNaoPodeSerAtribuidoException(
+            br.com.api.auroraorg.ticket.exception.ChamadoNaoPodeSerAtribuidoException ex, HttpServletRequest request) {
+        log.warn("Chamado não pode ser atribuído: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(br.com.api.auroraorg.ticket.exception.ResponsavelNaoPertenceFilaException.class)
+    public ResponseEntity<ErrorResponse> handleResponsavelNaoPertenceFilaException(
+            br.com.api.auroraorg.ticket.exception.ResponsavelNaoPertenceFilaException ex, HttpServletRequest request) {
+        log.warn("Responsável não pertence à fila: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
     // ========== GLOBAL EXCEPTION ==========
 
     @ExceptionHandler(Exception.class)
