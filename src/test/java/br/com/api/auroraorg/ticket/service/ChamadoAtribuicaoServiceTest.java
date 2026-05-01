@@ -42,6 +42,7 @@ class ChamadoAtribuicaoServiceTest {
     @Mock private UserRepository userRepository;
     @Mock private SecurityUtils securityUtils;
     @Mock private TicketHistoryService historyService;
+    @Mock private SlaService slaService;
 
     @InjectMocks
     private ChamadoAtribuicaoService atribuicaoService;

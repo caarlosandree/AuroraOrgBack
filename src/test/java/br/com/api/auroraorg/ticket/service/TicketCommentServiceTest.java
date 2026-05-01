@@ -57,6 +57,9 @@ class TicketCommentServiceTest {
     private TicketHistoryService historyService;
 
     @Mock
+    private SlaService slaService;
+
+    @Mock
     private SecurityUtils securityUtils;
 
     @InjectMocks
