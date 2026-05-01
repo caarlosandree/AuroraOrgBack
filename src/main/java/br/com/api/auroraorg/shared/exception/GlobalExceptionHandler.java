@@ -503,6 +503,92 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
+    // ========== SLA EXCEPTIONS ==========
+
+    @ExceptionHandler(br.com.api.auroraorg.ticket.exception.SlaNaoEncontradoException.class)
+    public ResponseEntity<ErrorResponse> handleSlaNaoEncontradoException(
+            br.com.api.auroraorg.ticket.exception.SlaNaoEncontradoException ex, HttpServletRequest request) {
+        log.warn("SLA não encontrado: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(br.com.api.auroraorg.ticket.exception.SlaPoliticaNaoEncontradaException.class)
+    public ResponseEntity<ErrorResponse> handleSlaPoliticaNaoEncontradaException(
+            br.com.api.auroraorg.ticket.exception.SlaPoliticaNaoEncontradaException ex, HttpServletRequest request) {
+        log.warn("Política de SLA não encontrada: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(br.com.api.auroraorg.ticket.exception.SlaPoliticaInvalidaException.class)
+    public ResponseEntity<ErrorResponse> handleSlaPoliticaInvalidaException(
+            br.com.api.auroraorg.ticket.exception.SlaPoliticaInvalidaException ex, HttpServletRequest request) {
+        log.warn("Política de SLA inválida: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(br.com.api.auroraorg.ticket.exception.SlaNaoPodeSerRecalculadoException.class)
+    public ResponseEntity<ErrorResponse> handleSlaNaoPodeSerRecalculadoException(
+            br.com.api.auroraorg.ticket.exception.SlaNaoPodeSerRecalculadoException ex, HttpServletRequest request) {
+        log.warn("SLA não pode ser recalculado: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.UNPROCESSABLE_ENTITY.value(),
+                "Unprocessable Entity",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error);
+    }
+
+    @ExceptionHandler(br.com.api.auroraorg.ticket.exception.PrimeiraRespostaJaRegistradaException.class)
+    public ResponseEntity<ErrorResponse> handlePrimeiraRespostaJaRegistradaException(
+            br.com.api.auroraorg.ticket.exception.PrimeiraRespostaJaRegistradaException ex, HttpServletRequest request) {
+        log.warn("Primeira resposta já registrada: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(br.com.api.auroraorg.ticket.exception.ChamadoNaoPermiteAtualizacaoSlaException.class)
+    public ResponseEntity<ErrorResponse> handleChamadoNaoPermiteAtualizacaoSlaException(
+            br.com.api.auroraorg.ticket.exception.ChamadoNaoPermiteAtualizacaoSlaException ex, HttpServletRequest request) {
+        log.warn("Chamado não permite atualização de SLA: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
     // ========== GLOBAL EXCEPTION ==========
 
     @ExceptionHandler(Exception.class)
