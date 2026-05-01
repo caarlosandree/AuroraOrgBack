@@ -45,6 +45,12 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
 
+sla:
+  monitoramento:
+    enabled: true
+    intervalo-ms: 300000  # 5 minutos
+    risco-percentual: 0.20  # 20% do tempo restante = em risco
+
 app:
   storage:
     local:
